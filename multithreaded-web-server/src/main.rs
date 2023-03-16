@@ -15,7 +15,7 @@ fn main() {
         }
     };
 
-    for stream in listen.incoming() {
+    for stream in listen.incoming().take(2) {
         let stream = stream.expect("failed to get the stream");
         pool.execute(||{
             handle_req(stream);

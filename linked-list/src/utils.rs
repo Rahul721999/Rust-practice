@@ -47,9 +47,51 @@ where
         }
     }
 
-    pub fn remove_last(&mut self) {}
+    pub fn remove_last(&mut self) -> &str {
+        match self.count_node(){
+            0 => return "List is empty",
+            1 => {
+                self.head = None;
+                return "Success"
+            },
+            2 =>{
+                self.head.as_mut().expect("Failed to unwrap head value").next = None;
+                return "success"
+            },
+            _ => {
+                if let Some(ref mut head) = self.head{
+                    let mut head_node = head;
+                    // let mut tail_node = unsafe { head_node.next.unwrap_unchecked() }; // I'm too much Over-confident LOL
+                    while let Some(ref mut node) = head_node.next{
+                        if node.clone().next.expect("failed to get the next node").next.is_none(){
+                            node.next = None;
+                            return "Success"
+                        }else{
+                            head_node = node;
+                        }
+                    }
+                    return "Success"
+                }else {
+                    return "List is empty"
+                }
+            }
+        }
+        
+    }
 
-    pub fn count(&self) {}
+    pub fn count_node(&self) -> i32 {
+        if let Some(ref head) = self.head{
+            let mut head_node = head;
+            let mut count = 1;
+            while let Some(ref node) = head_node.next{
+                head_node = node;
+                count += 1 ;
+            }
+            return count
+        }else {
+            return 0
+        }
+    }
 
     /// fn to display the values of the list...
     pub fn display(&self) -> String {

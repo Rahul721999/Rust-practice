@@ -1,5 +1,5 @@
 use self::model::*;
-use diesel::prelude::*;
+use diesel::prelude::*; 
 use diesel_demo::*;
 
 fn main(){

@@ -14,6 +14,6 @@ pub fn connect_db() -> PostgresPool{
     let manager = ConnectionManager::<PgConnection>::new(database_url);
     dbg!("trying to connect");
     r2d2::Pool::builder()
-        .build(manager).unwrap()
+        .build(manager).expect("failed to get the db pool")
     
 }

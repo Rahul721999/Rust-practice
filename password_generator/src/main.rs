@@ -1,6 +1,6 @@
 
 fn main() {
-    let password = "PAsWorD@12#3*";
+    let password = "Pass@123";
     analyze_pass(password);
     let _pass = gen_pass();
     let hash = gen_pass_with_salt(&password);
@@ -21,11 +21,11 @@ fn gen_pass()-> String {
         strict: true,
     };
 
-    println!("{}", pg.generate_one().expect("failed to gen pass"));
-    println!(
-        "{:?}",
-        pg.generate(4).expect("failed to gen pass with generate()")
-    );
+    // println!("{}", pg.generate_one().expect("failed to gen pass"));
+    // println!(
+    //     "{:?}",
+    //     pg.generate(4).expect("failed to gen pass with generate()")
+    // );
     return pg.generate_one().unwrap()
 }
 
@@ -51,15 +51,15 @@ fn analyze_pass(password : &str){
     use passwords::{analyzer, scorer};
     let res = analyzer::analyze(password);
     let score = scorer::score(&res) as i64;
-    println!("password-score: {}", score);
+    print!("password-score : ");
     match score{
-        0..=20 =>{print!("{score}")},
-        21..=40=>{print!("{score}")},
-        41..=60=>{print!("{score}")},
-        61..=80=>{print!("{score}")},
-        81..=90=>{print!("{score}")},
-        91..=95=>{print!("{score}")},
-        96..=100=>{print!("{score}")},
+        0..=20 =>{println!("{score}")},
+        21..=40=>{println!("{score}")},
+        41..=60=>{println!("{score}")},
+        61..=80=>{println!("{score}")},
+        81..=90=>{println!("{score}")},
+        91..=95=>{println!("{score}")},
+        96..=100=>{println!("{score}")},
         _ => {print!("out of bound score : {score}")}
     }
 }

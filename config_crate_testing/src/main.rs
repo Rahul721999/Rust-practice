@@ -1,11 +1,11 @@
 // src/main.rs
-use config::{Config, File, FileFormat};
-use secrecy::{Secret, ExposeSecret};
+use config::{Config, File};
+use secrecy::{Secret};
 
 #[derive(Debug,serde::Deserialize)]
 pub struct Settings {
-pub database: DatabaseSettings,
-pub application: ApplicationSettings,
+    pub application: ApplicationSettings,
+    pub database: DatabaseSettings
 }
 #[derive(Debug,serde::Deserialize)]
 pub struct ApplicationSettings {
@@ -22,19 +22,15 @@ pub database_name: String,
 }
 impl Settings {
     pub fn from_file(){
-        let config = Config::builder().add_source(File::new("config", FileFormat::Yaml));
-        let config = config.build().expect("failed to get config");
-        let settings = config.clone().try_deserialize::<Settings>().expect("failed to get the settings");
-        let app :ApplicationSettings  = config.get::<ApplicationSettings>("application").expect("failed to get the Application settings");
-        let db: DatabaseSettings = config.get::<DatabaseSettings>("database").expect("failed to get the db settings");
-        // let name = app.get("app").expect("value not found").clone().try_deserialize::<AppConfig>().expect("failed");
-        println!("app-port {}, app-host{}", app.port, app.host);
-        println!("password : {:?}", db.password.expose_secret());
-        println!("app-port {}, app-host{}, datahase-name:{}", 
-        settings.application.port,
-        settings.application.host,
-        settings.database.database_name
-        )
+        let base_path =  std::env::current_dir().expect("Failed to get the curr dir");
+        let config_dir = base_path.join("configuration");
+        let config = Config::builder().add_source(File::from(config_dir.join("config")));
+        let con = match config.add_source(File::from(config_dir.join("base"))).build(){
+            Ok(config) => config,
+            Err(err) => panic!("{}",err),
+        };
+        let settings = con.try_deserialize::<Settings>().expect("Failed");
+        println!("{}", settings.application.host);
     }
 }
 

@@ -1,4 +1,5 @@
-use crate::{Video, VideoDetails, VideosList};
+
+use crate::component::util::{Video, VideoDetails, VideosList};
 use yew::prelude::*;
 use gloo_net::http::Request;
 

@@ -1,6 +1,3 @@
-
-
-
 // importing generated gRPC code
 use hello_grpc::*;
 // importing types for messages

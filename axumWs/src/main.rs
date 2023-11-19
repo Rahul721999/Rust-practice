@@ -72,6 +72,128 @@ async fn handle_socket(
     mut socket : WebSocket,
     who : SocketAddr
 ){
+
+    // send msg
+    if socket.send(Message::Ping(vec![1,2,3])).await.is_ok(){
+    }else{
+        println!("❌Could not send ping to: {who} ");
+        return;
+    }
+
+    // recieving msg
+    if let Some(msg) = socket.recv().await{
+        if let Ok(msg) = msg{
+            // TODO: do something with the msg
+            if process_msg(msg, who).is_break(){
+                return;
+            }
+        }else{
+            println!("❌Client:{who} got disconnected");
+            return
+        }
+    }
     
-    todo!()
+    // Sending random messages
+    for i in 1..5 {
+        if socket
+            .send(Message::Text(format!("Hi {i} times!")))
+            .await
+            .is_err()
+        {
+            println!("client {who} abruptly disconnected");
+            return;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
+
+    // To send and recieve the messages at the same time. Split the websocket channel to sender and reciever
+    let (mut sender, mut reciever) = socket.split();
+
+
+    // Spawn a task that will push messages to the client
+    let mut send_task = tokio::spawn(async move{
+        let n_msg = 10;
+        for i in 0..n_msg{
+            if sender.send(Message::Text(format!("Server message: {i}...")))
+                .await
+                .is_err(){
+                    return i;
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+        }
+
+        // sending CLOSE req to websocket
+        println!("🚀Sending close to {who}...");
+        if let Err(e) = sender
+            .send(Message::Close(Some(CloseFrame { 
+                code: axum::extract::ws::close_code::NORMAL,
+                reason: Cow::from("GoodBye !!!") 
+            }
+        ))).await{
+            println!("Could not send CLOSE req, Reason : {e}");
+        }
+        n_msg
+    });
+    
+
+    // Spawn a task that will recieve the messages and print them on the server console.
+    let mut rcv_task = tokio::spawn(async move{
+        let mut cnt = 0;
+        while let Some(Ok(msg)) = reciever.next().await{
+            cnt +=1;
+            if process_msg(msg, who).is_break(){
+                break;
+            }
+        }
+        cnt
+    });
+
+    // If any one of the task EXITS, abort the other.
+    tokio::select! {
+        rv_a = (&mut send_task) =>{
+            match rv_a{
+                Ok(a) => println!("{a} Messages sent to {who}"),
+                Err(a) => println!("Error sending mesasages, Reason: {a}"),
+            }
+            rcv_task.abort();
+        }
+
+        rv_b = (&mut rcv_task) =>{
+            match rv_b{
+                Ok(b) => println!("Recieved {b} messages"),
+                Err(b) => println!("Error recieving messages, Reason: {b}"),
+            }
+            send_task.abort()
+        }
+    }
+
+    println!("❌ Websocket context {who} destroyed");
+}
+
+// handler fn to process the ricieved msg
+fn process_msg(msg: Message, who : SocketAddr) -> ControlFlow<(),()>{
+    // TODO: process the recieved msg
+    match msg{
+        Message::Ping(v) =>{
+            println!(" 🚩 {who} sent a ping with {v:?}");
+        }
+        Message::Pong(v)=>{
+            println!("🚩 {who} sent a pong with: {v:?}");
+        }
+        Message::Text(t) =>{
+            println!("🚩 {who} sent a pong with: {t:?}");
+        }
+        Message::Binary(d) =>{
+            println!("🚩 {who} sent {} bytes: {:?}", d.len(),d);
+        }
+        Message::Close(c) =>{
+            if let Some(cf) = c {
+                println!("{} send close with code {} and reason {}", who, cf.code, cf.reason);
+            }else{
+                println!("{} somehow sent clsoe message without CLoseFrame", who);
+            }
+            return ControlFlow::Break(());
+        }
+    }
+    ControlFlow::Continue(())
 }

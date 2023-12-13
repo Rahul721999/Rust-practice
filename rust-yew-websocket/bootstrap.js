@@ -1,3 +1,3 @@
-import('./pkg').then((module) => {
+import('./pkg/rust-yew-websocket.js').then((module) => {
      module.run_app();
  });

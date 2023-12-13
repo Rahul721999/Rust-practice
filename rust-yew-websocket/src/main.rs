@@ -1,19 +1,20 @@
-#![allow(unused)]
 mod component;
 mod services;
-use services::websocket;
 use component::{chat::Chat, login::Login};
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::prelude::*;
 use yew::functional::*;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-pub type User = Rc<UserInner>;
+
+
+
+pub type User = Rc<UserCred>;
 #[derive(Debug, PartialEq)]
-pub struct UserInner {
+pub struct UserCred {
     pub username: RefCell<String>,
+    pub password: RefCell<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Routable)]
@@ -35,27 +36,26 @@ fn switch(selected_route: &Route) -> Html {
     }
 }
 
-#[function_component(Main)]
-fn main() -> Html {
+fn main() {
+    yew::Renderer::<App>::new().render();
+}
+
+#[function_component(App)]
+fn app() -> Html {
     let ctx = use_state(|| {
-        Rc::new(UserInner {
+        Rc::new(UserCred {
             username: RefCell::new("initial".into()),
+            password: RefCell::new("initial".into()),
         })
     });
 
     html! {
      <ContextProvider<User> context={(*ctx).clone()}>
-        <BrowserRouter>
+        // <BrowserRouter>
             <div class="flex w-screen h-screen">
-                <Switch<Route> render={Switch::render(switch)}/>
+                // <Switch<Route> render={Switch::render(switch)}/>
             </div>
-        </BrowserRouter>
+        // </BrowserRouter>
     </ContextProvider<User>>
     }
-}
-#[wasm_bindgen]
-pub fn run_app() -> Result<(), JsValue> {
-    wasm_logger::init(wasm_logger::Config::default());
-    yew::start_app::<Main>();
-    Ok(())
 }

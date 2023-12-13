@@ -50,34 +50,35 @@ impl Component for Chat{
      type Message = Msg;
      type Properties = ();
 
-     fn create(ctx: &Context<Self>) -> Self{
-          let (user, _) = ctx
-               .link()
-               .context::<User>(Callback::noop())
-               .expect("context to be set");
-          let wss = WebSocketService::new();
-          let username = user.username.borrow().clone();
+     fn create(ctx: &Context<Self>) -> Self {
+        let (user, _) = ctx
+            .link()
+            .context::<User>(Callback::noop())
+            .expect("context to be set");
+        let wss = WebSocketService::new();
+        let username = user.username.borrow().clone();
 
-          let message = WebSocketMessage{
-               message_type : MsgTypes::Register,
-               data : Some(username.to_string()),
-               data_array: None,
-          };
+        let message = WebSocketMessage {
+            message_type: MsgTypes::Register,
+            data: Some(username.to_string()),
+            data_array: None,
+        };
 
-          if let Ok(_) = wss
-               .tx
-               .clone()
-               .try_send(serde_json::to_string(&message).unwrap())
-               {
-                    log::debug!("message sent unsuccessfully");
-               }
-          Self {
-               users : vec![],
-               messages: vec![],
-               chat_input: NodeRef::default(),
-               wss,
-          }
-     }
+        if let Ok(_) = wss
+            .tx
+            .clone()
+            .try_send(serde_json::to_string(&message).unwrap())
+        {
+            log::debug!("message sent successfully");
+        }
+
+        Self {
+            users: vec![],
+            messages: vec![],
+            chat_input: NodeRef::default(),
+            wss,
+        }
+    }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let submit = ctx.link().callback(|_| Msg::SubmitMessage);

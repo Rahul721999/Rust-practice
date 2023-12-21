@@ -1,55 +1,61 @@
+use crate::Chat;
+use log::debug;
 use web_sys::HtmlInputElement;
 use yew::functional::*;
 use yew::prelude::*;
-use yew_router::prelude::*;
-
-use crate::Route;
-use crate::User;
 
 #[function_component(Login)]
-pub fn login() -> Html{
-     let username = use_state(|| String::new());
-     let password =  use_state(|| String::new());
-     let user = use_context::<User>().expect("No context found.");
+pub fn login() -> Html {
+    let username = use_state(|| String::new());
+    let password = use_state(|| String::new());
+    let logged_in = use_state(|| false);
 
-          let oninput = {
-               let current_username = username.clone();
-               Callback::from(move |e: InputEvent| {
-                   let input: HtmlInputElement = e.target_unchecked_into();
-                   current_username.set(input.value());
-               })
-           };
+    // handle onUsernameInput event
+    let handle_username_input = {
+        let current_username = username.clone();
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            current_username.set(input.value());
+        })
+    };
+    // handle onPasswordInput event
+    let handle_password_input = {
+        let current_password = password.clone();
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            current_password.set(input.value());
+        })
+    };
 
-     let onclick = {
-          let username = username.clone();
-          let user = user.clone();
-          Callback::from(move |()| {
-               *user.username.borrow_mut() = (*username).clone();
-               *user.password.borrow_mut() = (*password).clone();
-           })
-     };
-     html!{
-          <div class="bg-gray-800 flex w-screen">
-              <div class="container mx-auto flex flex-col justify-center items-center ">
-                  <form class="m-4 flex">
-                      <input
-                          oninput = {oninput}
-                          class="rounded-l-lg p-4 border-t mr-0 border-b border-l text-gray-800 border-gray-200 bg-white"
-                          placeholder="Username"
-                      />
-                    //   <Link<Route>
-                    //       to={Route::Chat}
-                    //   >
-                    //       <button
-                    //           onclick = {onclick}
-                    //           disabled={username.len() < 1}
-                    //           class="px-8 rounded-r-lg bg-violet-600 text-white font-bold p-4 uppercase border-violet-600 border-t border-b border-r"
-                    //       >
-                    //           {"Go Chatting!"}
-                    //       </button>
-                    //   </Link<Route>>
-                  </form>
-              </div>
-          </div>
-      }
+    // handle onSubmit event
+    let handle_submit_event = {
+        let username = username.clone();
+        let password = password.clone();
+        let logged_in = logged_in.clone();
+        Callback::from(move |_| {
+            logged_in.set(true);
+            debug!("username: {},Password: {}", *username, *password);
+        })
+    };
+
+    let login = html! {
+        <div>
+            <form onsubmit={handle_submit_event}>
+                <input
+                    oninput = {handle_username_input}
+                    placeholder="Username"
+                />
+                <input
+                    oninput = {handle_password_input}
+                    placeholder="password"
+                />
+                <button type="submit">{"Submit"}
+                </button>
+            </form>
+        </div>
+    };
+    if *logged_in{
+        html! {<Chat/>}
+    } 
+    else{login}
 }

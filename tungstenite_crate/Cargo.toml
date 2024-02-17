@@ -6,5 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = "1.29.1"
+futures-channel = "0.3.30"
+futures-util = "0.3.29"
+tokio = { version = "1.35.0", features = ["full"] }
+tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
+url = "2.3.1"
 tungstenite = "0.20.0"
